@@ -1,7 +1,6 @@
 #include "dialog.h"
 #include "ui_dialog.h"
-#include "space.h"
-#include "cursor.h"
+#include "board.h"
 
 #include <vector>
 #include <unordered_map>
@@ -13,68 +12,38 @@ Dialog::Dialog(QWidget *parent)
 {
     ui->setupUi(this);
     //Constants defining size of the board and size of each space
-    const int BLOCK_SIZE = 30;
-    const int TOP_LEFT_X_COORD = 0;
-    const int TOP_LEFT_Y_COORD = 0;
     const int NUM_BLOCKS_HORIZANTAL = 20;
     const int NUM_BLOCKS_VERTICAL = 20;
+    ui->graphicsView->setInteractive(true);
 
-    mazeBoard = new QGraphicsScene(this);
-    ui->graphicsView->setScene(mazeBoard);
-    ui->graphicsView->setRenderHint(QPainter::Antialiasing);
-    std::unordered_map<char, Space*> factory;
-    Space* factoryFullSpace = new FullSpace();factoryFullSpace->setData("fullDummy", BLOCK_SIZE);
-    Space* factoryEmptySpace = new EmptySpace(); factoryEmptySpace->setData("emptyDummy", BLOCK_SIZE);
-    Space* factoryStartSpace = new StartSpace();factoryStartSpace->setData("startDummy", BLOCK_SIZE);
-    Space* factoryFinishSpace = new FinishSpace(); factoryFinishSpace->setData("finishDummy", BLOCK_SIZE);
-    Space* factoryAcceleratorSpace = new AcceleratorSpace(); factoryAcceleratorSpace->setData("acceleratorDummy", BLOCK_SIZE);
-    Space* factoryBlueKey = new BlueKey(); factoryBlueKey->setData("blueKeyDummy", BLOCK_SIZE);
-    Space* factoryBlueBlock = new BlueBlock(); factoryBlueBlock->setData("blueClockDummy", BLOCK_SIZE);
+    ui->comboBox->addItem("Empty Space");
+    ui->comboBox->addItem("Full Space");
+    ui->comboBox->addItem("Start Space");
+    ui->comboBox->addItem("Finish Space");
+    ui->comboBox->addItem("Acellerator Space");
+    ui->comboBox->addItem("Blue Space");
+    ui->comboBox->addItem("Blue Key");
+    ui->comboBox->addItem("Red Space");
+    ui->comboBox->addItem("Red Key");
+    ui->comboBox->addItem("Yellow Space");
+    ui->comboBox->addItem("Yellow Key");
+    ui->comboBox->addItem("Green Space");
+    ui->comboBox->addItem("Green Key");
 
-    factory['f'] = factoryFullSpace;
-    factory['e'] = factoryEmptySpace;
-    factory['s'] = factoryStartSpace;
-    factory['x'] = factoryFinishSpace;
-    factory['a'] = factoryAcceleratorSpace;
-    factory['b'] = factoryBlueKey;
-    factory['B'] = factoryBlueBlock;
+    mazeScene = new QGraphicsScene(this);
+    ui->graphicsView->setScene(mazeScene);
+    customBoard = new Board(mazeScene);
+    currentBoard= new Board("C:\\Users\\micha\\OneDrive\\Documents\\PathFinder\\Levels\\Level01.txt", NUM_BLOCKS_VERTICAL, NUM_BLOCKS_HORIZANTAL, mazeScene);
+    currentBoard->displayBoard();
+    mazeScene->addItem(currentBoard);
+    currentBoard->setFlag(QGraphicsItem::ItemIsFocusable);
+    currentBoard->setFocus();
 
-    std::vector<std::vector<char>> mazeGrid(NUM_BLOCKS_VERTICAL, std::vector<char> (NUM_BLOCKS_HORIZANTAL, 0));
-    std::ifstream level01File;
-    level01File.open("C:\\Users\\micha\\OneDrive\\Documents\\PathFinder\\Levels\\Level01.txt");
+    QMediaPlayer * backgroundMusic = new QMediaPlayer();
+    backgroundMusic->setMedia(QUrl("qrc:/sounds/ClaireDeLune.mp3"));
+    backgroundMusic->play();
 
-    timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), mazeBoard, SLOT(advance));
-    timer->start(100);
 
-    int xCoord = TOP_LEFT_X_COORD;
-    int yCoord = TOP_LEFT_Y_COORD;
-    char spaceKey;
-    int xStart=0;
-    int yStart=0;
-    for(int i=0; i<NUM_BLOCKS_VERTICAL; i++)
-    {
-        for(int j=0; j<NUM_BLOCKS_HORIZANTAL; j++)
-        {
-            level01File>>spaceKey;
-            mazeGrid[i][j]=spaceKey;
-            factory[spaceKey]->displaySpace(xCoord, yCoord, mazeBoard);
-            xCoord+=BLOCK_SIZE;
-            if(spaceKey=='s')
-            {
-                xStart=j;
-                yStart=i;
-            }
-        }
-        xCoord=TOP_LEFT_X_COORD;
-        yCoord+=BLOCK_SIZE;
-    }
-
-    Cursor * gameCursor = new Cursor(xStart, yStart,BLOCK_SIZE, mazeGrid, factory);
-    gameCursor->setRect(xStart*BLOCK_SIZE+BLOCK_SIZE/4, yStart*BLOCK_SIZE+BLOCK_SIZE/4, BLOCK_SIZE/2, +BLOCK_SIZE/2);
-    gameCursor->setFlag(QGraphicsItem::ItemIsFocusable);
-    gameCursor->setFocus();
-    mazeBoard->addItem(gameCursor);
 
 }
 
@@ -83,3 +52,49 @@ Dialog::~Dialog()
     delete ui;
 }
 
+
+void Dialog::on_pushButton_clicked()//Push Button for next level
+{
+    if(this->currentLevel<this->maxLevel)
+    {
+        this->currentLevel++;
+        const int NUM_BLOCKS_HORIZANTAL = 20;
+        const int NUM_BLOCKS_VERTICAL = 20;
+        delete currentBoard;
+        currentBoard= new Board(this->levels[this->currentLevel], NUM_BLOCKS_VERTICAL, NUM_BLOCKS_HORIZANTAL, mazeScene);
+        currentBoard->displayBoard();
+
+        mazeScene->addItem(currentBoard);
+        currentBoard->setFlag(QGraphicsItem::ItemIsFocusable);
+        currentBoard->setFocus();
+    }
+}
+
+void Dialog::on_pushButton_2_clicked()//push button for last Level
+{
+    if(this->currentLevel>0)
+    {
+        this->currentLevel--;
+        const int NUM_BLOCKS_HORIZANTAL = 20;
+        const int NUM_BLOCKS_VERTICAL = 20;
+        delete currentBoard;
+        currentBoard= new Board(this->levels[this->currentLevel], NUM_BLOCKS_VERTICAL, NUM_BLOCKS_HORIZANTAL, mazeScene);
+        currentBoard->displayBoard();
+
+        mazeScene->addItem(currentBoard);
+        currentBoard->setFlag(QGraphicsItem::ItemIsFocusable);
+        currentBoard->setFocus();
+    }
+
+}
+
+void Dialog::on_pushButton_3_clicked()//push button to switch to edit level
+{
+
+    delete currentBoard;
+    customBoard->displayBoard();
+    mazeScene->addItem(customBoard);
+    customBoard->setFlag(QGraphicsItem::ItemIsFocusable);
+    customBoard->setFocus();
+
+}

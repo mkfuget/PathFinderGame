@@ -1,0 +1,12 @@
+#ifndef CURSORANIMATOR_H
+#define CURSORANIMATOR_H
+#include <QPainter>
+#include <QGraphicsItem>
+#include "board.h"
+class Animator : public QGraphicsItem
+{
+public:
+    Animator();
+};
+
+#endif // CURSORANIMATOR_H
