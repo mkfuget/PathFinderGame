@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/sounds">
+        <file>ClaireDeLune.mp3</file>
+        <file>MoveToFreeSpace.mp3</file>
+        <file>MoveToBlockedSpace.mp3</file>
+        <file>MoveToAcceleratorSpace.mp3</file>
+        <file>MoveToFinishedSpace.mp3</file>
+    </qresource>
+    <qresource prefix="/new/prefix1"/>
+</RCC>
